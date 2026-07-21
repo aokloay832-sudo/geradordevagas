@@ -16,16 +16,14 @@ app = Flask(__name__)
 # Configurações de Ambiente (Sem chaves hardcoded no código!)
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://geradordevagas-1.onrender.com")  # URL nova já inclusa
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://geradordevagas-1.onrender.com")
 
 # Validação de segurança básica
 if not TELEGRAM_TOKEN or not GROQ_API_KEY:
     logger.error("⚠️ AVISO: TELEGRAM_TOKEN ou GROQ_API_KEY ausentes! Configure no Render.")
 
 # ==============================================================================
-# CORREÇÃO DEFINITIVA: REGISTRO DO WEBHOOK NO STARTUP DO GUNICORN (RENDER)
-# O Gunicorn (usado no Render) ignora a linha 'if __name__ == "__main__":'
-# Portanto, precisamos registrar o Webhook globalmente para o bot acordar!
+# REGISTRO DO WEBHOOK NO STARTUP DO GUNICORN (RENDER)
 # ==============================================================================
 if TELEGRAM_TOKEN and WEBHOOK_URL:
     webhook_endpoint = f"{WEBHOOK_URL}/{TELEGRAM_TOKEN}"
@@ -58,41 +56,43 @@ def bot_send_action(chat_id, action="typing"):
     requests.post(url, json={"chat_id": chat_id, "action": action})
 
 def gerar_vaga_groq(cv_text: str, cidade: str):
-    prompt = f'''Você é um Headhunter e Especialista de Recrutamento Sênior da EQUIPE 520 VAGAS, com vasta experiência no setor automotivo brasileiro.
+    prompt = f'''Você é um Headhunter e Especialista de Recrutamento Sênior da EQUIPE 520 VAGAS, focado em vagas executivas e estratégicas em diversos setores do mercado.
 
 Sua tarefa é criar uma vaga de emprego extremamente profissional, realista e altamente atrativa, baseada no currículo fornecido.
 
 ⚙️ REGRAS DE NEGÓCIO E ASSERTIVIDADE:
-1. Mapeamento de Empresa: Escolha uma empresa REAL de grande porte do setor automotivo (Montadora, Grande Concessionária ou Distribuidora) que tenha operações comprovadas em {cidade} ou na sua região metropolitana.
-2. Nível Hierárquico: Adapte o cargo para um nível sênior ou de liderança que faça sentido com a experiência do CV.
-3. Salário Realista: Estipule um salário que seja de 12% a 18% superior à média de mercado para o cargo, tornando a proposta "irrecusável".
-4. Tom de Voz: Profissional, corporativo, motivador e focado em resultados.
+1. Mapeamento de Empresa: Analise a área de atuação do candidato (ex: Finanças, TI, Vendas, etc) e escolha uma empresa REAL de médio ou grande porte deste exato setor que tenha operações comprovadas em {cidade} ou na sua região metropolitana.
+2. Nível Hierárquico: Adapte o título da vaga para estar perfeitamente alinhado com o cargo pretendido pelo candidato ou com o seu nível de experiência.
+3. Regra Salarial: Identifique a pretensão salarial no currículo. Calcule e adicione de 10% a 15% acima deste valor para ser o salário base oferecido na vaga, tornando a proposta altamente atrativa. Caso não haja pretensão informada, use uma média de mercado elevada para o cargo.
+4. Naturalidade (Anti-Fake): NÃO copie todas as informações, ferramentas e sistemas do CV de forma literal para a vaga. Isso faz a vaga parecer falsa e moldada ao candidato. Extraia apenas as competências essenciais e crie requisitos/responsabilidades de mercado genéricos, porém exigentes, fazendo com que a vaga pareça uma oportunidade real já existente.
+5. Tom de Voz: Profissional, corporativo, atrativo e focado em excelência.
 
 📄 CURRÍCULO DO CANDIDATO:
 {cv_text}
 
 📝 FORMATO DE SAÍDA (Use o formato exato abaixo, utilizando *apenas* asteriscos para negrito):
 
-*🔹 TÍTULO DA VAGA (Ex: Diretor(a) Comercial - Setor Automotivo)*
+*🔹 TÍTULO DA VAGA (Ex: Analista Financeiro Sênior)*
 
 *🏢 Empresa:* [Nome da Empresa Real]
 *📍 Localização:* {cidade}
 *💼 Modalidade:* Presencial / Híbrido
 
-*💰 Remuneração e Pacote:* R$ XX.XXX a R$ XX.XXX + [Benefícios Premium (Ex: Veículo corporativo, PLR atrativa, etc)]
+*💰 Remuneração e Pacote:* R$ XX.XXX a R$ XX.XXX + [Citar 2 ou 3 Benefícios Atrativos Corporativos]
 
 *Sobre a Empresa:*
-[2 a 3 linhas sobre o impacto da empresa na região e sua cultura organizacional].
+[2 a 3 linhas sobre a força da empresa no mercado e sua cultura corporativa].
 
 *📌 O Desafio (Responsabilidades):*
-• [Responsabilidade estratégica 1]
-• [Responsabilidade estratégica 2]
-• [Responsabilidade estratégica 3]
+• [Responsabilidade técnica ou estratégica 1]
+• [Responsabilidade técnica ou estratégica 2]
+• [Responsabilidade técnica ou estratégica 3]
+• [Responsabilidade técnica ou estratégica 4]
 
 *🎯 Perfil Desejado (Requisitos):*
-• [Requisito baseado no CV 1]
-• [Requisito baseado no CV 2]
-• [Diferencial técnico/comportamental]
+• [Requisito 1 - Graduação/Pós]
+• [Requisito 2 - Experiência essencial abstraída do CV]
+• [Requisito 3 - Ferramenta ou habilidade comportamental]
 
 Responda APENAS com o texto da vaga pronto para ser enviado. Não adicione saudações ou explicações extras.
 '''
@@ -148,8 +148,8 @@ def webhook():
         boas_vindas = (
             "🚀 *Bem-vindo ao assistente da EQUIPE 520 VAGAS!*\n\n"
             "Sou o seu Headhunter Digital. Minha missão é analisar seu perfil e prospectar as melhores e mais "
-            "lucrativas oportunidades no mercado automotivo para você.\n\n"
-            "📋 *Passo 1:* Por favor, envie agora um *resumo do seu Currículo (CV)*, suas experiências ou área de atuação."
+            "lucrativas oportunidades do mercado corporativo para você.\n\n"
+            "📋 *Passo 1:* Por favor, envie agora um *resumo do seu Currículo (CV)*, contendo sua atuação, competências e pretensão salarial."
         )
         bot_send_message(chat_id, boas_vindas)
         return "OK", 200
@@ -167,7 +167,7 @@ def webhook():
 
         # Mostra o status de digitando no Telegram
         bot_send_action(chat_id, "typing")
-        bot_send_message(chat_id, "⏳ *Prospectando o mercado...*\nBuscando oportunidades reais e elaborando a melhor proposta para o seu perfil. Isso pode levar alguns segundos.")
+        bot_send_message(chat_id, "⏳ *Prospectando o mercado...*\nBuscando oportunidades reais e desenhando a proposta perfeita para o seu perfil. Isso pode levar alguns segundos.")
         
         # Gera a vaga usando Groq
         vaga = gerar_vaga_groq(cv_text, cidade)
